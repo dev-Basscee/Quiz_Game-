@@ -61,6 +61,34 @@ describe('Score calculation', () => {
     expect(result.points).toBe(1000);
     expect(result.breakdown.speed).toBe(0);
   });
+
+  test('should add first correct answer bonus', () => {
+    const regularResult = calculateScore({
+      isCorrect: true,
+      timeTaken: 5000,
+      timeLimit: 10000,
+      basePoints: 1000,
+      speedMultiplier: 0.5,
+      streak: 0,
+      streakBonus: false,
+      isFirstCorrect: false
+    });
+
+    const firstResult = calculateScore({
+      isCorrect: true,
+      timeTaken: 5000,
+      timeLimit: 10000,
+      basePoints: 1000,
+      speedMultiplier: 0.5,
+      streak: 0,
+      streakBonus: false,
+      isFirstCorrect: true
+    });
+
+    expect(firstResult.points).toBeGreaterThan(regularResult.points);
+    expect(firstResult.breakdown.firstBonus).toBe(500); // 1000 * 0.5
+    expect(regularResult.breakdown.firstBonus).toBe(0);
+  });
 });
 
 describe('Leaderboard calculation', () => {

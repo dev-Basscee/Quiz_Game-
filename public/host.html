@@ -21,6 +21,21 @@
             <div id="setup-phase" class="phase-content">
                 <h2>Create Your Quiz</h2>
                 
+                <!-- Template Selection Section -->
+                <div class="template-section">
+                    <h3>Choose a Template or Create Custom</h3>
+                    <div class="template-tabs">
+                        <button id="template-tab" class="tab-btn active">Use Template</button>
+                        <button id="custom-tab" class="tab-btn">Create Custom</button>
+                    </div>
+                    
+                    <div id="template-content" class="tab-content">
+                        <div class="template-grid" id="template-grid">
+                            <div class="loading">Loading templates...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="custom-content" class="tab-content" style="display: none;">
                 <div class="quiz-builder">
                     <div class="question-form">
                         <h3>Add Questions</h3>
@@ -75,6 +90,8 @@
                         <button id="create-game" class="btn btn-primary" disabled>Create Game</button>
                     </div>
                 </div>
+                    </div> <!-- End custom-content -->
+                </div> <!-- End template-section -->
             </div>
 
             <!-- Lobby Phase -->

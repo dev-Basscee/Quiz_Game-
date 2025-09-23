@@ -21,7 +21,8 @@ function calculateScore({
   basePoints = 1000,
   speedMultiplier = 0.5,
   streak = 0,
-  streakBonus = true
+  streakBonus = true,
+  isFirstCorrect = false
 }) {
   if (!isCorrect) {
     return {
@@ -30,6 +31,7 @@ function calculateScore({
         base: 0,
         speed: 0,
         streak: 0,
+        firstBonus: 0,
         total: 0
       }
     };
@@ -38,7 +40,7 @@ function calculateScore({
   // Base points for correct answer
   const base = basePoints;
 
-  // Speed bonus calculation
+  // Speed bonus calculation - still provide some speed bonus even with first-to-answer
   const remainingTime = Math.max(0, timeLimit - timeTaken);
   const timeRatio = remainingTime / timeLimit;
   const speedPoints = Math.ceil(timeRatio * basePoints * speedMultiplier);
@@ -46,7 +48,10 @@ function calculateScore({
   // Streak bonus calculation
   const streakPoints = streakBonus && streak > 0 ? streak * 100 : 0;
 
-  const total = base + speedPoints + streakPoints;
+  // First correct answer bonus - significant bonus for being first
+  const firstBonus = isFirstCorrect ? basePoints * 0.5 : 0;
+
+  const total = base + speedPoints + streakPoints + firstBonus;
 
   return {
     points: total,
@@ -54,6 +59,7 @@ function calculateScore({
       base,
       speed: speedPoints,
       streak: streakPoints,
+      firstBonus,
       total
     }
   };
