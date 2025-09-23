@@ -1,0 +1,4 @@
+packages:
+  - 'server'
+  - 'apps/host-react'
+  - 'apps/player-vanilla'

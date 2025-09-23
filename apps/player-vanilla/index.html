@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game Player</title>
+    <meta name="description" content="Join and play quiz games in real-time">
+    <meta name="theme-color" content="#0ea5e9">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Quiz Player">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Join Screen -->
+        <div class="screen" id="join-screen">
+            <div class="container">
+                <div class="header">
+                    <h1>🎯 Quiz Player</h1>
+                    <p>Enter the game PIN to join</p>
+                </div>
+                
+                <form id="join-form" class="form">
+                    <div class="input-group">
+                        <label for="pin-input">Game PIN</label>
+                        <input 
+                            type="text" 
+                            id="pin-input" 
+                            maxlength="6" 
+                            pattern="[0-9]{6}"
+                            placeholder="123456"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="nickname-input">Your Nickname</label>
+                        <input 
+                            type="text" 
+                            id="nickname-input" 
+                            maxlength="20"
+                            placeholder="Enter your name"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="join-btn">
+                        Join Game
+                    </button>
+                </form>
+                
+                <div class="error-message" id="join-error"></div>
+                
+                <div class="connection-status" id="connection-status">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div class="screen hidden" id="waiting-screen">
+            <div class="container">
+                <div class="header">
+                    <h1>🎮 Get Ready!</h1>
+                    <p>You're in the game</p>
+                </div>
+                
+                <div class="player-info">
+                    <div class="avatar" id="player-avatar">👤</div>
+                    <h2 id="player-nickname">Player</h2>
+                    <p class="score">Score: <span id="player-score">0</span></p>
+                </div>
+                
+                <div class="game-info">
+                    <p>Waiting for the host to start the game...</p>
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div class="screen hidden" id="question-screen">
+            <div class="container">
+                <div class="question-header">
+                    <div class="question-progress">
+                        <span id="question-number">1</span> / <span id="total-questions">10</span>
+                    </div>
+                    <div class="timer" id="timer">30</div>
+                </div>
+                
+                <div class="question-content">
+                    <div class="question-image" id="question-image"></div>
+                    <h2 class="question-text" id="question-text">Question goes here</h2>
+                </div>
+                
+                <div class="answer-section" id="answer-section">
+                    <!-- Multiple choice options will be inserted here -->
+                    <!-- Or text input for short answer questions -->
+                </div>
+                
+                <div class="submit-section" id="submit-section">
+                    <button class="btn btn-primary" id="submit-btn" disabled>
+                        Submit Answer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Answer Confirmed Screen -->
+        <div class="screen hidden" id="confirmed-screen">
+            <div class="container">
+                <div class="header">
+                    <h1>✅ Answer Submitted!</h1>
+                    <p>Waiting for other players...</p>
+                </div>
+                
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- Feedback Screen -->
+        <div class="screen hidden" id="feedback-screen">
+            <div class="container">
+                <div class="feedback-content">
+                    <div class="feedback-icon" id="feedback-icon">✅</div>
+                    <h1 id="feedback-title">Correct!</h1>
+                    <p id="feedback-message">You earned 1000 points</p>
+                </div>
+                
+                <div class="score-update">
+                    <div class="points-earned" id="points-earned">+1000</div>
+                    <div class="total-score">
+                        Total: <span id="total-score">1000</span> points
+                    </div>
+                </div>
+                
+                <div class="correct-answer" id="correct-answer-display"></div>
+            </div>
+        </div>
+
+        <!-- Rank Screen -->
+        <div class="screen hidden" id="rank-screen">
+            <div class="container">
+                <div class="header">
+                    <h1>📊 Your Rank</h1>
+                </div>
+                
+                <div class="rank-display">
+                    <div class="rank-number" id="rank-number">#1</div>
+                    <div class="rank-info">
+                        <h2 id="rank-nickname">Player</h2>
+                        <p class="rank-score"><span id="rank-score">1000</span> points</p>
+                    </div>
+                </div>
+                
+                <div class="rank-message" id="rank-message">
+                    Great job! You're in the lead!
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Ended Screen -->
+        <div class="screen hidden" id="ended-screen">
+            <div class="container">
+                <div class="header">
+                    <h1>🏁 Game Over!</h1>
+                    <p>Thanks for playing</p>
+                </div>
+                
+                <div class="final-results">
+                    <div class="final-rank">
+                        <div class="rank-badge" id="final-rank-badge">#1</div>
+                        <h2 id="final-nickname">Player</h2>
+                        <p class="final-score"><span id="final-score">1000</span> points</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-secondary" id="play-again-btn">
+                    Play Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/socket.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
