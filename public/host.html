@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game - Host</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎪 Quiz Host Dashboard</h1>
+            <div class="game-info" id="game-info" style="display: none;">
+                <span>Game Code: <strong id="game-code"></strong></span>
+                <span>Players: <span id="player-count">0</span></span>
+            </div>
+        </header>
+
+        <main id="host-content">
+            <!-- Quiz Setup Phase -->
+            <div id="setup-phase" class="phase-content">
+                <h2>Create Your Quiz</h2>
+                
+                <div class="quiz-builder">
+                    <div class="question-form">
+                        <h3>Add Questions</h3>
+                        <div class="form-group">
+                            <label for="question-text">Question:</label>
+                            <input type="text" id="question-text" placeholder="Enter your question">
+                        </div>
+                        
+                        <div class="options-container">
+                            <div class="form-group">
+                                <label>Option A:</label>
+                                <input type="text" id="option-a" placeholder="Option A">
+                            </div>
+                            <div class="form-group">
+                                <label>Option B:</label>
+                                <input type="text" id="option-b" placeholder="Option B">
+                            </div>
+                            <div class="form-group">
+                                <label>Option C:</label>
+                                <input type="text" id="option-c" placeholder="Option C">
+                            </div>
+                            <div class="form-group">
+                                <label>Option D:</label>
+                                <input type="text" id="option-d" placeholder="Option D">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="correct-answer">Correct Answer:</label>
+                            <select id="correct-answer">
+                                <option value="">Select correct answer</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="time-limit">Time Limit (seconds):</label>
+                            <input type="number" id="time-limit" value="30" min="5" max="120">
+                        </div>
+                        
+                        <button id="add-question" class="btn btn-secondary">Add Question</button>
+                    </div>
+                    
+                    <div class="questions-preview">
+                        <h3>Questions Preview</h3>
+                        <div id="questions-list" class="questions-list">
+                            <p class="empty-state">No questions added yet</p>
+                        </div>
+                        <button id="create-game" class="btn btn-primary" disabled>Create Game</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lobby Phase -->
+            <div id="lobby-phase" class="phase-content" style="display: none;">
+                <h2>Game Lobby</h2>
+                <div class="lobby-info">
+                    <div class="game-code-display">
+                        <h3>Game Code</h3>
+                        <div class="code-display" id="lobby-game-code"></div>
+                        <p>Share this code with your players</p>
+                    </div>
+                    
+                    <div class="players-list">
+                        <h3>Players Joined</h3>
+                        <div id="lobby-players" class="players-grid">
+                            <p class="empty-state">Waiting for players to join...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lobby-controls">
+                    <button id="start-game" class="btn btn-primary" disabled>Start Game</button>
+                </div>
+            </div>
+
+            <!-- Game Phase -->
+            <div id="game-phase" class="phase-content" style="display: none;">
+                <div class="game-controls">
+                    <div class="current-question">
+                        <h3>Question <span id="current-q-num">1</span> of <span id="total-questions">0</span></h3>
+                        <div id="question-display" class="question-card">
+                            <p id="question-text-display"></p>
+                            <div id="options-display" class="options-display"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-actions">
+                        <button id="next-question" class="btn btn-primary">Show Question</button>
+                        <button id="show-results" class="btn btn-secondary" style="display: none;">Show Results</button>
+                        <button id="next-round" class="btn btn-primary" style="display: none;">Next Question</button>
+                    </div>
+                </div>
+                
+                <div class="live-stats">
+                    <h3>Live Statistics</h3>
+                    <div id="answer-stats" class="answer-stats"></div>
+                    <div id="live-leaderboard" class="leaderboard"></div>
+                </div>
+            </div>
+
+            <!-- Results Phase -->
+            <div id="results-phase" class="phase-content" style="display: none;">
+                <h2>🏆 Final Results</h2>
+                <div id="final-leaderboard" class="final-leaderboard"></div>
+                <div class="results-actions">
+                    <button id="new-game" class="btn btn-primary">Create New Game</button>
+                    <a href="/" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/host.js"></script>
+</body>
+</html>
