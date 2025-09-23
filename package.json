@@ -1,0 +1,23 @@
+{
+  "name": "quiz-game-monorepo",
+  "private": true,
+  "workspaces": [
+    "server",
+    "apps/host-react",
+    "apps/player-vanilla"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm -F server dev\" \"pnpm -F host-react dev\" \"pnpm -F player-vanilla dev\"",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "install-deps": "pnpm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
