@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game - Player</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Player Dashboard</h1>
+            <div class="player-info" id="player-info" style="display: none;">
+                <span>Game: <strong id="player-game-code"></strong></span>
+                <span>Player: <strong id="player-name-display"></strong></span>
+                <span>Score: <strong id="player-score">0</strong></span>
+            </div>
+        </header>
+
+        <main id="player-content">
+            <!-- Join Phase -->
+            <div id="join-phase" class="phase-content">
+                <h2>Join a Quiz Game</h2>
+                
+                <div class="join-form">
+                    <div class="form-group">
+                        <label for="game-code-input">Game Code:</label>
+                        <input type="text" id="game-code-input" placeholder="Enter 6-digit code" maxlength="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="player-name-input">Your Name:</label>
+                        <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20">
+                    </div>
+                    
+                    <button id="join-game" class="btn btn-primary">Join Game</button>
+                </div>
+                
+                <div id="join-error" class="error-message" style="display: none;"></div>
+            </div>
+
+            <!-- Lobby Phase -->
+            <div id="player-lobby-phase" class="phase-content" style="display: none;">
+                <h2>Waiting for Game to Start</h2>
+                
+                <div class="lobby-status">
+                    <div class="status-card">
+                        <h3>You're In!</h3>
+                        <p>Game Code: <strong id="lobby-code-display"></strong></p>
+                        <p>Players: <span id="lobby-player-count">1</span></p>
+                    </div>
+                    
+                    <div class="waiting-animation">
+                        <div class="spinner"></div>
+                        <p>Waiting for host to start the game...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Phase -->
+            <div id="question-phase" class="phase-content" style="display: none;">
+                <div class="question-container">
+                    <div class="question-header">
+                        <h3>Question <span id="question-number">1</span></h3>
+                        <div class="timer-container">
+                            <div id="timer-bar" class="timer-bar"></div>
+                            <span id="timer-text">30</span>s
+                        </div>
+                    </div>
+                    
+                    <div class="question-content">
+                        <h2 id="question-text"></h2>
+                        
+                        <div id="answer-options" class="answer-options">
+                            <!-- Options will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="answer-feedback" class="answer-feedback" style="display: none;">
+                    <div class="feedback-content">
+                        <div id="feedback-icon" class="feedback-icon"></div>
+                        <h3 id="feedback-text"></h3>
+                        <p id="feedback-details"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Phase -->
+            <div id="player-results-phase" class="phase-content" style="display: none;">
+                <h2>Question Results</h2>
+                
+                <div class="results-content">
+                    <div class="correct-answer-display">
+                        <h3>Correct Answer:</h3>
+                        <div id="correct-answer-text" class="correct-answer"></div>
+                    </div>
+                    
+                    <div class="leaderboard-container">
+                        <h3>🏆 Leaderboard</h3>
+                        <div id="player-leaderboard" class="leaderboard"></div>
+                    </div>
+                </div>
+                
+                <div class="waiting-next">
+                    <div class="spinner"></div>
+                    <p>Waiting for next question...</p>
+                </div>
+            </div>
+
+            <!-- Final Results Phase -->
+            <div id="player-final-phase" class="phase-content" style="display: none;">
+                <h2>🎉 Game Complete!</h2>
+                
+                <div class="final-results">
+                    <div class="player-final-score">
+                        <h3>Your Final Score</h3>
+                        <div id="final-score-display" class="score-display">0</div>
+                        <div id="final-rank-display" class="rank-display">#1</div>
+                    </div>
+                    
+                    <div class="final-leaderboard-container">
+                        <h3>Final Leaderboard</h3>
+                        <div id="player-final-leaderboard" class="final-leaderboard"></div>
+                    </div>
+                </div>
+                
+                <div class="final-actions">
+                    <a href="/player" class="btn btn-primary">Play Again</a>
+                    <a href="/" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+
+            <!-- Disconnected State -->
+            <div id="disconnected-phase" class="phase-content" style="display: none;">
+                <h2>⚠️ Connection Lost</h2>
+                <p>The game host has disconnected or the game has ended.</p>
+                <div class="disconnect-actions">
+                    <a href="/player" class="btn btn-primary">Join Another Game</a>
+                    <a href="/" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/player.js"></script>
+</body>
+</html>
