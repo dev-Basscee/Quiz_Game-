@@ -96,10 +96,24 @@ class Game {
     }
 
     const timeMs = Date.now() - this.questionStartTime;
+    const isCorrect = question.isCorrectAnswer(answer);
+
+    // Check if this is the first correct answer
+    let isFirstCorrect = false;
+    if (isCorrect) {
+      const allAnswers = Array.from(questionAnswers.values());
+      const hasAnyCorrect = allAnswers.some(a => {
+        return question.isCorrectAnswer(a.answer);
+      });
+      isFirstCorrect = !hasAnyCorrect;
+    }
+
     const answerData = {
       answer,
       timeMs,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isCorrect,
+      isFirstCorrect
     };
 
     questionAnswers.set(playerId, answerData);
@@ -108,7 +122,7 @@ class Game {
       ...answerData
     };
 
-    return { success: true };
+    return { success: true, isCorrect, isFirstCorrect };
   }
 
   endQuestion() {
@@ -121,13 +135,16 @@ class Game {
     if (!question) return null;
 
     const questionAnswers = this.answers.get(question.id) || new Map();
+    const { calculateScore } = require('../lib/score');
+    
     const results = {
       questionId: question.id,
       totalAnswers: questionAnswers.size,
       optionCounts: {},
       correctAnswer: question.type === 'multiple-choice' || question.type === 'true-false' 
         ? question.correctIndex 
-        : question.correctText
+        : question.correctText,
+      answers: []
     };
 
     // Count answers per option
@@ -141,6 +158,43 @@ class Game {
         if (typeof answer === 'number' && results.optionCounts.hasOwnProperty(answer)) {
           results.optionCounts[answer]++;
         }
+      });
+    }
+
+    // Calculate scores for each player's answer
+    for (const [playerId, answerData] of questionAnswers.entries()) {
+      const player = this.getPlayer(playerId);
+      if (!player) continue;
+
+      const isCorrect = answerData.isCorrect;
+      const scoreResult = calculateScore({
+        isCorrect,
+        timeTaken: answerData.timeMs,
+        timeLimit: question.timeLimitSec * 1000,
+        basePoints: this.settings.pointsBase,
+        speedMultiplier: this.settings.speedMultiplier,
+        streak: player.streak || 0,
+        streakBonus: this.settings.streakBonus,
+        isFirstCorrect: answerData.isFirstCorrect
+      });
+
+      // Update player stats
+      if (isCorrect) {
+        player.streak = (player.streak || 0) + 1;
+        player.score += scoreResult.points;
+      } else {
+        player.streak = 0;
+      }
+
+      results.answers.push({
+        playerId,
+        playerName: player.nickname,
+        answer: answerData.answer,
+        isCorrect,
+        isFirstCorrect: answerData.isFirstCorrect,
+        timeMs: answerData.timeMs,
+        points: scoreResult.points,
+        breakdown: scoreResult.breakdown
       });
     }
 

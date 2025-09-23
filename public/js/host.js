@@ -7,9 +7,12 @@ class QuizHost {
         this.currentPhase = 'setup';
         this.gameState = null;
         this.currentQuestionIndex = -1;
+        this.selectedTemplate = null;
+        this.templates = [];
         
         this.initializeEventListeners();
         this.initializeSocketListeners();
+        this.loadTemplates();
     }
 
     initializeEventListeners() {
@@ -28,6 +31,10 @@ class QuizHost {
         document.getElementById('question-text').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.addQuestion();
         });
+        
+        // Template tab switching
+        document.getElementById('template-tab').addEventListener('click', () => this.showTemplateTab());
+        document.getElementById('custom-tab').addEventListener('click', () => this.showCustomTab());
     }
 
     initializeSocketListeners() {
@@ -57,6 +64,133 @@ class QuizHost {
         this.socket.on('start-error', (data) => {
             this.showError(data.message);
         });
+    }
+
+    // Template functionality
+    async loadTemplates() {
+        try {
+            const response = await fetch('/api/quiz-templates');
+            this.templates = await response.json();
+            this.renderTemplates();
+        } catch (error) {
+            console.error('Failed to load templates:', error);
+            document.getElementById('template-grid').innerHTML = 
+                '<div class="error-message">Failed to load templates</div>';
+        }
+    }
+
+    renderTemplates() {
+        const templateGrid = document.getElementById('template-grid');
+        templateGrid.innerHTML = this.templates.map(template => `
+            <div class="template-card" data-template-id="${template.id}">
+                <h4>${template.title}</h4>
+                <p>${template.description}</p>
+                <div class="template-meta">
+                    <span class="template-questions">${template.questions.length} questions</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Add click handlers for template selection
+        templateGrid.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const templateId = card.dataset.templateId;
+                this.selectTemplate(templateId);
+            });
+        });
+    }
+
+    selectTemplate(templateId) {
+        this.selectedTemplate = this.templates.find(t => t.id === templateId);
+        
+        // Update UI to show selected template
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`[data-template-id="${templateId}"]`).classList.add('selected');
+        
+        // Enable create game button and show selected template info
+        this.showSelectedTemplate();
+    }
+
+    showSelectedTemplate() {
+        const templateContent = document.getElementById('template-content');
+        const selectedDiv = templateContent.querySelector('.selected-template');
+        
+        if (selectedDiv) {
+            selectedDiv.remove();
+        }
+
+        if (this.selectedTemplate) {
+            const selectedTemplate = document.createElement('div');
+            selectedTemplate.className = 'selected-template';
+            selectedTemplate.innerHTML = `
+                <div>
+                    <h4>${this.selectedTemplate.title}</h4>
+                    <p>${this.selectedTemplate.questions.length} questions ready to use</p>
+                </div>
+                <button class="btn-use-template" id="use-template-btn">Use This Template</button>
+            `;
+            templateContent.insertBefore(selectedTemplate, document.getElementById('template-grid'));
+            
+            // Add event listener for the button
+            document.getElementById('use-template-btn').addEventListener('click', () => this.useTemplate());
+        }
+    }
+
+    useTemplate() {
+        if (!this.selectedTemplate) return;
+        
+        // Convert template format to internal format
+        this.questions = this.selectedTemplate.questions.map(q => {
+            let options = {};
+            let correctAnswer = '';
+            
+            if (q.type === 'multiple-choice' || q.type === 'true-false') {
+                // Map options to A, B, C, D format
+                options = {
+                    A: q.options[0],
+                    B: q.options[1],
+                    C: q.options[2] || '',
+                    D: q.options[3] || ''
+                };
+                correctAnswer = ['A', 'B', 'C', 'D'][q.correctIndex];
+            } else if (q.type === 'short-text') {
+                // For short text questions, create dummy multiple choice
+                options = {
+                    A: q.correctText,
+                    B: 'Wrong answer',
+                    C: 'Wrong answer',
+                    D: 'Wrong answer'
+                };
+                correctAnswer = 'A';
+            }
+            
+            return {
+                question: q.text,
+                options: options,
+                correctAnswer: correctAnswer,
+                timeLimit: q.timeLimitSec || 30
+            };
+        });
+        
+        this.updateQuestionsPreview();
+        document.getElementById('create-game').disabled = false;
+        this.showCustomTab(); // Switch to custom tab to show the imported questions
+    }
+
+    showTemplateTab() {
+        document.getElementById('template-tab').classList.add('active');
+        document.getElementById('custom-tab').classList.remove('active');
+        document.getElementById('template-content').style.display = 'block';
+        document.getElementById('custom-content').style.display = 'none';
+    }
+
+    showCustomTab() {
+        document.getElementById('custom-tab').classList.add('active');
+        document.getElementById('template-tab').classList.remove('active');
+        document.getElementById('custom-content').style.display = 'block';
+        document.getElementById('template-content').style.display = 'none';
     }
 
     addQuestion() {
@@ -99,13 +233,16 @@ class QuizHost {
             questionsList.innerHTML = '<p class="empty-state">No questions added yet</p>';
             createButton.disabled = true;
         } else {
-            questionsList.innerHTML = this.questions.map((q, index) => `
-                <div class="question-item">
-                    <h4>Question ${index + 1}: ${q.question}</h4>
-                    <p>Correct Answer: ${q.correctAnswer} - ${q.options[q.correctAnswer]}</p>
-                    <p>Time Limit: ${q.timeLimit}s</p>
-                </div>
-            `).join('');
+            questionsList.innerHTML = this.questions.map((q, index) => {
+                const correctAnswerText = q.options[q.correctAnswer] || q.correctAnswer;
+                return `
+                    <div class="question-item">
+                        <h4>Question ${index + 1}: ${q.question}</h4>
+                        <p>Correct Answer: ${q.correctAnswer} - ${correctAnswerText}</p>
+                        <p>Time Limit: ${q.timeLimit}s</p>
+                    </div>
+                `;
+            }).join('');
             createButton.disabled = false;
         }
     }
@@ -265,7 +402,8 @@ class QuizHost {
     }
 }
 
-// Initialize the host when the page loads
+// Initialize the host when the page loads and make it globally accessible
+let quizHost;
 document.addEventListener('DOMContentLoaded', () => {
-    new QuizHost();
+    quizHost = new QuizHost();
 });

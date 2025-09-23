@@ -342,6 +342,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// API endpoint to get sample quiz templates
+app.get('/api/quiz-templates', (req, res) => {
+  const sampleQuizzes = require('./server/data/sampleQuizzes');
+  res.json(sampleQuizzes);
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
