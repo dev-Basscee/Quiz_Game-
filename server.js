@@ -6,6 +6,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { v4: uuidv4 } = require('uuid');
+// Use enhanced scoring from PR#3
+const { calculateScore } = require('./server/lib/score');
 
 const app = express();
 const server = http.createServer(app);
@@ -56,6 +58,7 @@ class Game {
     this.startTime = null;
     this.questionStartTime = null;
     this.leaderboard = [];
+    this.firstCorrectAwarded = false; // track first-correct bonus per question
   }
 
   addPlayer(socketId, name) {
@@ -63,7 +66,9 @@ class Game {
       socketId,
       name,
       score: 0,
+      streak: 0,
       answers: [],
+      lastAnswer: null,
       joinTime: Date.now()
     };
     this.players.set(socketId, player);
@@ -77,6 +82,7 @@ class Game {
   nextQuestion() {
     this.currentQuestion++;
     this.questionStartTime = Date.now();
+    this.firstCorrectAwarded = false;
     return this.currentQuestion < this.questions.length ? this.questions[this.currentQuestion] : null;
   }
 
@@ -86,13 +92,32 @@ class Game {
 
     const question = this.questions[this.currentQuestion];
     const isCorrect = answer === question.correctAnswer;
-    
-    // Calculate score based on correctness and speed
-    let points = 0;
+
+    // Enhanced scoring using PR#3 logic
+    const timeLimitMs = (question.timeLimit || 30) * 1000;
+    const scoreResult = calculateScore({
+      isCorrect,
+      timeTaken: timeToAnswer,
+      timeLimit: timeLimitMs,
+      basePoints: 1000,
+      speedMultiplier: 0.5,
+      streak: player.streak || 0,
+      streakBonus: true,
+      isFirstCorrect: isCorrect && !this.firstCorrectAwarded
+    });
+
+    const points = scoreResult.points;
+
+    // Update first-correct flag
+    if (isCorrect && !this.firstCorrectAwarded) {
+      this.firstCorrectAwarded = true;
+    }
+
+    // Update streaks
     if (isCorrect) {
-      const maxPoints = 1000;
-      const timeBonus = Math.max(0, maxPoints - (timeToAnswer * 10));
-      points = Math.floor(timeBonus);
+      player.streak = (player.streak || 0) + 1;
+    } else {
+      player.streak = 0;
     }
 
     player.answers.push({
@@ -100,16 +125,24 @@ class Game {
       answer,
       isCorrect,
       points,
-      timeToAnswer
+      timeToAnswer,
+      breakdown: scoreResult.breakdown,
+      timestamp: Date.now()
     });
 
+    player.lastAnswer = { timestamp: Date.now() };
     player.score += points;
-    return { isCorrect, points };
+    return { isCorrect, points, breakdown: scoreResult.breakdown };
   }
 
   updateLeaderboard() {
     this.leaderboard = Array.from(this.players.values())
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        const aTime = a.lastAnswer?.timestamp || Infinity;
+        const bTime = b.lastAnswer?.timestamp || Infinity;
+        return aTime - bTime; // earlier answer ranks higher on tie
+      })
       .map((player, index) => ({
         rank: index + 1,
         name: player.name,
@@ -356,7 +389,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🎮 Quiz Game Server running on port ${PORT}`);
+  console.log(`🎮 Blox Quiz Server running on port ${PORT}`);
   console.log(`🌐 Open http://localhost:${PORT} to get started`);
 });
 

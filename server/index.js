@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -41,6 +42,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static UI from ../public so this server handles the Blox web app
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
 // Socket.IO setup
 const io = new Server(server, {
   cors: corsOptions,
@@ -52,6 +56,23 @@ const io = new Server(server, {
 initializeSocket(io);
 
 // Routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+app.get('/host', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'host.html'));
+});
+
+app.get('/player', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'player.html'));
+});
+
+// API: sample quiz templates (PR#3 feature)
+app.get('/api/quiz-templates', (req, res) => {
+  const sampleQuizzes = require('./data/sampleQuizzes');
+  res.json(sampleQuizzes);
+});
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',

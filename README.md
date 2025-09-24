@@ -1,4 +1,4 @@
-# 🎮 Kahoot-Inspired Real-Time Quiz Game
+# 🎮 Blox — Kahoot-Inspired Real-Time Quiz Game
 
 A production-quality, real-time multiplayer quiz game inspired by Kahoot, featuring separate Host and Player web applications with live synchronization.
 
