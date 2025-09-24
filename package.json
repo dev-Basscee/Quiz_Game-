@@ -7,7 +7,8 @@
     "apps/player-vanilla"
   ],
   "scripts": {
-    "dev": "concurrently \"pnpm -F server dev\" \"pnpm -F host-react dev\" \"pnpm -F player-vanilla dev\"",
+    "start": "node server.js",
+    "dev": "node server.js",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
@@ -21,6 +22,11 @@
     "pnpm": ">=8.0.0"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^7.1.0",
+    "socket.io": "^4.7.4",
     "uuid": "^13.0.0"
   }
 }

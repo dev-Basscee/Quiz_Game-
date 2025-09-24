@@ -12,6 +12,10 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 
+// When running behind a reverse proxy (Codespaces/containers), trust the proxy
+// so express-rate-limit can correctly read client IP from X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
@@ -48,6 +52,14 @@ const io = new Server(server, {
 initializeSocket(io);
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'quiz-game-server',
+    message: 'Server is running. Health at /health. Host UI runs via Vite on port 5173.',
+  });
+});
+
 app.use('/health', healthRoutes);
 
 // Error handling middleware
